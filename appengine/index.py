@@ -54,8 +54,8 @@ class StaticTemplate(webapp.RequestHandler):
             self.redirect('/')
             return
 
-        channel = CONFIG.get('groups', group)
-        justintv = CONFIG.get('justintv', group)
+        channel = CONFIG.get(group, 'channel')
+        justintv = CONFIG.get(group, 'justintv')
 
         template = self.request.get('template', '')
         if not re.match('[a-z]+', template):
@@ -73,9 +73,9 @@ class StaticTemplate(webapp.RequestHandler):
             screen = False
 
         try:
-            hashtag = CONFIG.get('twitter', group)
+            hashtag = CONFIG.get(group, 'twitter')
         except ConfigParser.NoOptionError, e:
-            hashtag = CONFIG.get('twitter', 'default')
+            hashtag = CONFIG.get('default', 'twitter')
 
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(r('templates/%s.html' % template, locals()))
@@ -93,7 +93,7 @@ class StreamsTemplate(webapp.RequestHandler):
             self.out.write("window.src = '/';\n");
             return
 
-        channel = CONFIG.get('groups', group)
+        channel = CONFIG.get(group, 'channel')
 
         # Get all the active streaming severs for this channel
         ten_mins_ago = datetime.datetime.now() - datetime.timedelta(minutes=10)
@@ -164,15 +164,19 @@ class GroupsTemplate(webapp.RequestHandler):
     def get(self, template="groups"):
         # Get the currently active groups
         ten_mins_ago = datetime.datetime.now() - datetime.timedelta(minutes=10)
-        groups = set()
+        group_names = set()
         for server in models.Encoder.all():
             if server.lastseen < ten_mins_ago:
                 continue
-            groups.add(server.group)
+            group_names.add(server.group)
 
         global channels
 
-        hashtag = CONFIG.get('twitter', 'default')
+        groups = {}
+        for group in group_names:
+            groups[group] = dict(CONFIG.items(group))
+
+        hashtag = CONFIG.get('default', 'twitter')
 
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(r('templates/%s.html' % template, locals()))
