@@ -72,7 +72,7 @@ vim: set ts=2 sw=2 et sts=2 ai:
           <tr>
             <td style="width: 240px; vertical-align: top;">
               <div id="sponsor-front" class="container_3">
-               <div class='talk_info'>Streaming Sponsors</div>        
+               <div class='talk_info'>Streaming Sponsor</div>
                <div id="sponsor-1">
                 <a href="http://www.orionvm.com.au/"><img src="/static/img/orionvm.png"></a>
                 <div id="sponsor-1-info">
@@ -81,12 +81,9 @@ vim: set ts=2 sw=2 et sts=2 ai:
                     Linux.
                   </p><p>
                     To see the platform in action <a href="https://panel.orionvm.com.au/signup/">sign up</a>
-                    and mention linux.conf.au for $50 free credit.
+                    and mention SLUG for $50 free credit.
                   </p>
                 </div>
-               </div>
-               <div id="sponsor-2">
-                <a href="http://www.aarnet.edu.au/"><img src="/static/img/aarnet.gif" alt="Australia's Academic and Research Network"></a>
                </div>
               </div>
             </td>
@@ -114,7 +111,7 @@ vim: set ts=2 sw=2 et sts=2 ai:
 {% for group in groups %}
   <img id="video-preload-{{group}}" class="video_preload">
 {% endfor %}
- 
+
   </div>
 <script type="text/javascript">
 
@@ -126,27 +123,26 @@ $('#video-preload-{{group|escapejs}}').load(function() {
 });
 {% endfor %}
 function update_video() {
-{% for group in groups %}
+{% for group, v in groups.items %}
  $('#video-preload-{{group|escapejs}}').attr(
-  'src', "http://extra.streamti.me/~irc/%23lca2012-{{group|urlencode}}/latest.png?time="+current_time()
+  'src', "{{v.preview}}?time="+current_time()
   );
 {% endfor %}
 }
 
 function update_chat() {
-{% for group in groups %}
+{% for group, v in groups.items %}
  $('#chat-preview-{{group|escapejs}}').attr(
-  'src', "http://extra.streamti.me/~irc/frameit-ng.php?channel=%23lca2012-{{group|urlencode}}&time="+current_time()
+  'src', "{{v.irclog}}&time="+current_time()
   );
 {% endfor %}
   setTimeout(update_chat, 20000);
 }
 
-
 $('#sponsor-1').hover(
   function() {
    $('#sponsor-1-info').stop(true, true).slideDown();
-  }, 
+  },
   function() {
    $('#sponsor-1-info').stop(true, true).slideUp();
   });
