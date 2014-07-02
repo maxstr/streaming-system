@@ -1,0 +1,11 @@
+# DOCKER-VERSION 0.11.1
+FROM    streamingsystem/flumotion
+RUN     apt-get update
+
+ADD     sources /home/    
+RUN     cp /home/%s /usr/local/etc/flumotion/workers/default.xml 
+RUN     cp /home/%s /usr/local/etc/flumotion/managers/default/planet.xml
+
+%s
+
+CMD     service flumotion start && tail -f /usr/local/var/log/flumotion/*
