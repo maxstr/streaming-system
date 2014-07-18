@@ -15,3 +15,5 @@ website/local
 website/build/
 website/frontend/data.py
 website/static
+
+config.json

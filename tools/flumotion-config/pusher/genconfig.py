@@ -69,7 +69,7 @@ def main(args):
     # First we generate our host files. Hosts need to know what collectors/encoders they are running and
     # what ports they are expected to be on
     hosts = {}
-    default_connection = { "user":"", "password":"", "port":"22" }
+    default_connection = { "user":"docker", "password":"tcuser", "port":"22", "keyfile":"" }
     for group in CONFIG.groups():
         if group not in active_groups:
             print "Skipping", group, "for host generation"

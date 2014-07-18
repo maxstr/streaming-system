@@ -5,10 +5,9 @@ import json
 import sys
 import time
 import crypt
-from os import getcwd, path
-from genconfig import get_hosts
+from os import getcwd, path, listdir
 
-env.hosts = get_hosts()
+env.hosts = filter(lambda x: x[0] != '.', listdir('hosts'))
 
 class bcolors:
     HEADER = '\033[95m'
@@ -18,19 +17,20 @@ class bcolors:
     FAIL = '\033[91m'
     ENDC = '\033[0m'
 
+
 def prepare_deploy():
-    local('rm hosts/*')
+    with settings(warn_only=True):
+        local('rm hosts/*')
     local('./genconfig.py')
 
 def deploy():
     host = env.host
     host_conf = 'hosts/' + host
-    host_load(host_conf, False)
+    host_load(host_conf)
 
 def up():
     host = env.host
     host_conf = 'hosts/' + host
-    host_load(host_conf)
     host_start(host_conf)
 
 def down():
@@ -63,7 +63,7 @@ def file_write(file_name, contents):
         f.write(contents)
         return
 
-# Builds a Docker image on a remote host and potentially starts a container)
+# Builds a Docker image on a remote host
 def build_image(service_dict, connection):
     service_type = service_dict['type']
     service_conf = service_dict['conf']
@@ -98,11 +98,12 @@ def build_image(service_dict, connection):
         file_write(docker_file, docker_contents)
 
         # All configurations should be built locally, let's push them out to our host and build them with Docker.
-        build_dir = '/home/%s-%s-%s/' % (timestamp, service_type, group)
-        sources_dir = build_dir + 'sources/'
         print "-" * 80
-        with settings(user = connection['user'] or 'docker', password = connection['password'] or 'tcuser', port = connection['port'] or 22, shell = "/bin/sh -c"):
+        with settings(user = connection['user'], password = connection['password'], port = connection['port'], shell = "/bin/sh -c", \
+                key_filename = connection['keyfile']):
             print bcolors.HEADER + "Now pushing to %s" % env.host + bcolors.ENDC
+            build_dir = '/home/%s/%s-%s-%s/' % (env.user, timestamp, service_type, group)
+            sources_dir = build_dir + 'sources/'
             if (run("mkdir -p " + sources_dir).succeeded):
                 put(planet_file, sources_dir)
                 put(worker_file, sources_dir)
@@ -111,12 +112,14 @@ def build_image(service_dict, connection):
                 raise Exception("Failed to upload to remote host")
             with cd(build_dir):
                 build_command = 'docker build -q --rm=false -t %s-%s:latest .' % sg
-                if (run(build_command).succeeded):
-                    print bcolors.OKBLUE + "%s for group %s image build on %s successful!" % sgh + bcolors.ENDC
-                else:
-                    print bcolors.FAIL + "%s for group %s image build on %s unsuccesful!" % sgh + bcolors.ENDC
-                print "-" * 80
-                print "\n" * 2
+                with hide('stdout'):
+                    print bcolors.HEADER + "Building on %s. If this is the first build on this host, this may take several minutes." % env.host + bcolors.ENDC
+                    if (sudo(build_command).succeeded):
+                        print bcolors.OKBLUE + "%s for group %s image build on %s successful!" % sgh + bcolors.ENDC
+                    else:
+                        print bcolors.FAIL + "%s for group %s image build on %s unsuccesful!" % sgh + bcolors.ENDC
+                    print "-" * 80
+                    print "\n" * 2
 
 def host_start(host_file):
     try:
@@ -143,9 +146,10 @@ def start_container(service_dict, connection):
             start_command = 'docker run -d -p %i:15000 %s-%s:latest' % (service_conf['flumotion-encoder-port'], service_type, group)
         else:
             start_command = 'docker run -d %s-%s:latest' % (service_type, group)
-    with settings(user = connection['user'] or 'docker', password = connection['password'] or 'tcuser', port = connection['port'] or 22, shell = "/bin/sh -c"):
+    with settings(user = connection['user'], password = connection['password'], port = connection['port'], shell = "/bin/sh -c", \
+            key_filename = connection['keyfile']):
 
-        if (run(start_command).succeeded):
+        if (sudo(start_command).succeeded or run(start_command).succeeded):
             print (bcolors.OKGREEN + "%s service for %s group started successfully on %s" % sgh + bcolors.ENDC)
         else:
             print (bcolors.FAIL + "%s service for %s group failed to start on %s with command" % sgh + bcolors.ENDC)
