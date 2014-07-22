@@ -9,12 +9,12 @@ import os
 #---------------------------------------------------------------------------
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.' . (os.environ.get('DJANGO_DB_ENGINE') or 'postgresql_psycopg2'),
-        'NAME': os.environ.get('DJANGO_DB_NAME') or  'website-run',
-        'USER': os.environ.get('DJANGO_DB_USER') or '',
-        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD') or '',
-        'HOST': os.environ.get('DJANGO_DB_HOST') or '',
-        'PORT' : os.environ.get('DJANGO_DB_PORT') or '',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2'),
+        'NAME': 'streamingsystem',
+        'USER': 'streamingsystem',
+        'PASSWORD': 'streamingsystem',
+        'HOST': '',
+        'PORT' : ''
     }
 }
 
