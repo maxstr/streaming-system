@@ -5,15 +5,13 @@ function as_website {
 	return $?
 }
 
-if [ x$USER != xroot ]; then
-	echo "Must be run as root!"
-	exit
-fi
-
 set -x
 set -e
 
 # Add the users needed
+addgroup --system website
+addgroup --system website-run
+
 adduser --system website --ingroup website --shell /bin/bash --disabled-password --disabled-login
 adduser --system website-run --ingroup website-run --shell /bin/false --disabled-password --disabled-login
 adduser website website-run
