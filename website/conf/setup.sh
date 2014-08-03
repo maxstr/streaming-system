@@ -14,11 +14,11 @@ addgroup --system website-run
 
 adduser --system website --ingroup website --shell /bin/bash --disabled-password --disabled-login
 adduser --system website-run --ingroup website-run --shell /bin/false --disabled-password --disabled-login
-adduser website website-run
+adduser -a -G website-run website
 
 # Add current user to the new groups
-adduser $USER website
-adduser $USER website-run
+usermod -a -G website $USER
+usermod -a -G website $USER
 
 # Get python dependencies
 apt-get install python-pip python-setuptools python-virtualenv
